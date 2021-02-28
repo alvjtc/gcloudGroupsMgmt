@@ -26,6 +26,11 @@ import (
 	"google.golang.org/api/option"
 )
 
+type Googler struct {
+	GoogleDirectorySrv *admin.Service
+	GoogleGroupsSrv    *groupssettings.Service
+}
+
 func createDirectoryService(serviceAccountFilePath string, userEmail string) (*admin.Service, error) {
 	ctx := context.Background()
 
@@ -36,7 +41,7 @@ func createDirectoryService(serviceAccountFilePath string, userEmail string) (*a
 
 	config, err := google.JWTConfigFromJSON(jsonCredentials, admin.AdminDirectoryGroupScope)
 	if err != nil {
-		return nil, fmt.Errorf("JWTConfigFromJSON: %w", err)
+		return nil, fmt.Errorf("%w", err)
 	}
 	config.Subject = userEmail
 
@@ -44,7 +49,7 @@ func createDirectoryService(serviceAccountFilePath string, userEmail string) (*a
 
 	srv, err := admin.NewService(ctx, option.WithTokenSource(ts))
 	if err != nil {
-		return nil, fmt.Errorf("NewService: %w", err)
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return srv, nil
@@ -60,7 +65,7 @@ func createGroupsSettingsService(serviceAccountFilePath string) (*groupssettings
 
 	srv, err := groupssettings.NewService(ctx, clientOpts...)
 	if err != nil {
-		return nil, fmt.Errorf("NewService: %w", err)
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return srv, nil
@@ -75,12 +80,12 @@ func Connect(serviceAccountFilePath string, userEmail string) (*admin.Service, *
 
 	googleDSrv, err = createDirectoryService(serviceAccountFilePath, userEmail)
 	if err != nil {
-		return nil, nil, fmt.Errorf("createDirectoryService: %w", err)
+		return nil, nil, fmt.Errorf("%w", err)
 	}
 
 	googleGSrv, err = createGroupsSettingsService(serviceAccountFilePath)
 	if err != nil {
-		return nil, nil, fmt.Errorf("createGroupsSettingsService: %w", err)
+		return nil, nil, fmt.Errorf("%w", err)
 	}
 
 	return googleDSrv, googleGSrv, nil

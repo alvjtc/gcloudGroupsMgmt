@@ -12,24 +12,12 @@
 //See the License for the specific language governing permissions and
 //limitations under the License.
 
-package groups
+package main
 
 import (
-	"context"
-	"fmt"
-	"google.golang.org/api/admin/directory/v1"
+	"grtool/cmd"
 )
 
-func GetAllGroups(googleDSrv *admin.Service, domain string) (groupList []*admin.Group, err error) {
-	ctx := context.Background()
-
-	err = googleDSrv.Groups.List().Domain(domain).Pages(ctx, func(groups *admin.Groups) (err error) {
-		groupList = append(groupList, groups.Groups...)
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%w", err)
-	}
-
-	return groupList, nil
+func main() {
+	cmd.Execute()
 }

@@ -1,0 +1,2 @@
+config_file: credential.json
+admin_user: admin@example.com
