@@ -26,9 +26,24 @@ import (
 	"google.golang.org/api/option"
 )
 
-type Googler struct {
-	GoogleDirectorySrv *admin.Service
-	GoogleGroupsSrv    *groupssettings.Service
+func Connect(serviceAccountFilePath string, userEmail string) (*admin.Service, *groupssettings.Service, error) {
+	var (
+		googleDSrv *admin.Service
+		googleGSrv *groupssettings.Service
+		err        error
+	)
+
+	googleDSrv, err = createDirectoryService(serviceAccountFilePath, userEmail)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w", err)
+	}
+
+	googleGSrv, err = createGroupsSettingsService(serviceAccountFilePath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w", err)
+	}
+
+	return googleDSrv, googleGSrv, nil
 }
 
 func createDirectoryService(serviceAccountFilePath string, userEmail string) (*admin.Service, error) {
@@ -69,24 +84,4 @@ func createGroupsSettingsService(serviceAccountFilePath string) (*groupssettings
 	}
 
 	return srv, nil
-}
-
-func Connect(serviceAccountFilePath string, userEmail string) (*admin.Service, *groupssettings.Service, error) {
-	var (
-		googleDSrv *admin.Service
-		googleGSrv *groupssettings.Service
-		err        error
-	)
-
-	googleDSrv, err = createDirectoryService(serviceAccountFilePath, userEmail)
-	if err != nil {
-		return nil, nil, fmt.Errorf("%w", err)
-	}
-
-	googleGSrv, err = createGroupsSettingsService(serviceAccountFilePath)
-	if err != nil {
-		return nil, nil, fmt.Errorf("%w", err)
-	}
-
-	return googleDSrv, googleGSrv, nil
 }

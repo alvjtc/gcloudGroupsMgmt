@@ -15,7 +15,7 @@
 package cmd
 
 import (
-	"bufio"
+	"encoding/csv"
 	"fmt"
 	"github.com/spf13/cobra"
 	"grtool/internal/app/groups"
@@ -32,20 +32,13 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: runList,
+	ValidArgs: groups.GetGroupValidArgs(),
+	Run:       runList,
 }
 
 func init() {
 	rootCmd.AddCommand(listCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	listCmd.Flags().StringP("domain", "d", "", "Help message for domain")
 	listCmd.MarkFlagRequired("domain")
 
@@ -62,42 +55,43 @@ func runList(cmd *cobra.Command, args []string) {
 	}
 
 	output, _ := cmd.Flags().GetString("output")
+
+	var stream *os.File
+
 	if output != "" {
 		fmt.Printf("Listing all groups from domain %s to file %s:\n", domain, output)
 
-		fo, err := os.Create(output)
+		stream, err = os.Create(output)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return
 		}
 
 		defer func() {
-			if err := fo.Close(); err != nil {
+			if err := stream.Close(); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				return
 			}
 		}()
+	} else {
+		fmt.Printf("Listing all groups from domain %s:\n\n", domain)
 
-		w := bufio.NewWriter(fo)
+		stream = os.Stdout
+	}
 
-		// CSV Header
-		if _, err := fmt.Fprintln(w, "group_name"); err != nil {
+	w := csv.NewWriter(stream)
+
+	w.Write(groups.GetHeaders(args))
+
+	for _, g := range groupList {
+		values, err := g.ToSlice(args)
+		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return
 		}
 
-		for _, g := range groupList {
-			if _, err := fmt.Fprintf(w, "%s\n", g.Email); err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				return
-			}
-		}
-		w.Flush()
-	} else {
-		fmt.Printf("Listing all groups from domain %s:\n\n", domain)
-
-		for _, g := range groupList {
-			fmt.Println(g.Email)
-		}
+		w.Write(values)
 	}
+
+	w.Flush()
 }
